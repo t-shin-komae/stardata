@@ -1,13 +1,17 @@
+use crate::Name;
+#[derive(Clone,Debug)]
 pub struct Equatorial{
     pub right_ascension: RightAscension,
     pub declination: Declination,
 }
 
+#[derive(Clone,Debug)]
 pub struct RightAscension{
     hour:usize,
     minuite:usize,
     second:f32,
 }
+#[derive(Clone,Debug)]
 pub struct Declination{
     north:bool,
     degree:usize,
@@ -15,10 +19,22 @@ pub struct Declination{
     second: f32,
 }
 
+impl Equatorial{
+    pub fn new(r_hour:usize,r_minuite:usize,r_second:f32,d_north:bool,d_degree:usize,d_minuite:usize,d_second:f32) -> Self {
+        Self{
+            right_ascension: RightAscension::new(r_hour, r_minuite, r_second).expect("Right Ascension Value is Invalid"),
+            declination: Declination::new(d_north, d_degree, d_minuite, d_second).expect("Decilination Value is Invalid"),
+        }
+    }
+    pub fn get_angle(&self) -> (f32,f32) {
+        (self.right_ascension.get_angle(),self.declination.get_angle())
+    }
+}
+
 impl RightAscension{
     pub fn new(hour:usize,minuite:usize,second:f32) -> Result<Self,(usize,usize,usize)>{
         let (overflow_hour, overflow_minuite, overflow_second)
-            = (hour/12,minuite/60,second as usize /60);
+            = (hour/24,minuite/60,second as usize /60);
         if overflow_hour==0 && overflow_minuite==0 && overflow_second==0{
             Ok(RightAscension{
                 hour:hour,
@@ -62,16 +78,13 @@ impl Declination{
     
 }
 
-pub struct Name{
-    pub english: Option<String>,
-    pub japanese: Option<String>,
-}
 
+#[derive(Clone,Debug)]
 pub struct Star{
     hip: usize,
-    pub location: Equatorial,
-    pub magnitue: f32,
-    pub name: Name,
+    location: Equatorial,
+    magnitue: f32,
+    name: Name,
 }
 
 impl Star {
@@ -83,7 +96,24 @@ impl Star {
     pub fn get_hip(&self) -> usize {
         self.hip
     }
+    pub fn get_location(&self) -> Equatorial{
+        self.location.clone()
+    }
+    pub fn get_angle(&self) -> (f32,f32) {
+        self.location.get_angle()
+    }
+    pub fn get_name(&self) -> Name {
+        self.name.clone()
+    }
 }
+
+impl PartialEq for Star {
+    fn eq(&self,other:&Self) -> bool {
+        self.hip == other.hip
+    }
+}
+impl Eq for Star{}
+
 
 #[cfg(test)]
 mod tests{
